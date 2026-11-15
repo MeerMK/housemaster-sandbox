@@ -1,0 +1,15 @@
+{
+  "name": "housemaster-sandbox",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Self-contained PLO sandbox: game server, bot brain, simulated players and bot detection — for an FYP on online poker risks",
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "morphdom": "^2.7.8",
+    "ws": "^8.21.3"
+  }
+}

@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HouseMaster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0b0f1a;
+    --bg-2: #111827;
+    --panel: rgba(31, 41, 55, 0.55);
+    --panel-2: rgba(17, 24, 39, 0.7);
+    --border: rgba(148, 163, 184, 0.14);
+    --text: #e5e7eb;
+    --muted: #9ca3af;
+    --dim: #6b7280;
+    --green: #4ade80;
+    --green-bg: rgba(34, 197, 94, 0.22);
+    --teal: #5eead4;
+    --teal-bg: rgba(20, 184, 166, 0.25);
+    --red: #f87171;
+    --red-bg: rgba(239, 68, 68, 0.25);
+    --blue: #93c5fd;
+    --blue-bg: rgba(59, 130, 246, 0.22);
+    --amber: #fbbf24;
+    --amber-bg: rgba(245, 158, 11, 0.28);
+    --pink: #f0abfc;
+    --purple-bg: rgba(168, 85, 247, 0.25);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Inter, system-ui, sans-serif;
+    color: var(--text);
+    background: radial-gradient(1200px 700px at 80% -10%, #1e293b 0%, transparent 60%), var(--bg);
+    min-height: 100vh;
+  }
+  button { font: inherit; cursor: pointer; border: 0; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+  /* Header */
+  header {
+    display: flex; align-items: center; gap: 32px;
+    padding: 16px 32px; border-bottom: 1px solid var(--border);
+    background: rgba(11, 15, 26, 0.8); backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .brand { font-weight: 700; font-size: 20px; letter-spacing: .2px; }
+  .nav a { display: inline-flex; gap: 8px; align-items: center; color: var(--muted); text-decoration: none; padding: 6px 10px; border-radius: 8px; }
+  .nav a.on { color: var(--text); background: var(--panel); }
+  .demo-pill { margin-left: auto; font-size: 12px; color: var(--amber); background: var(--amber-bg); padding: 4px 10px; border-radius: 999px; }
+
+  main { max-width: 1400px; margin: 0 auto; padding: 32px; }
+  h1 { font-size: 32px; margin: 0 0 6px; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+
+  /* Stats */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+  .stat { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; gap: 16px; align-items: center; }
+  .stat .ic { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; background: var(--green-bg); color: var(--green); }
+  .stat .ic.blue { background: var(--blue-bg); color: var(--blue); }
+  .stat .ic.amber { background: var(--amber-bg); color: var(--amber); }
+  .stat b { display: block; font-size: 28px; }
+  .stat span { color: var(--muted); font-size: 14px; }
+
+  /* Room group */
+  .group { background: rgba(17, 24, 39, 0.45); border: 1px solid var(--border); border-radius: 20px; padding: 24px; margin-bottom: 24px; }
+  .group-head { display: flex; gap: 14px; align-items: center; margin-bottom: 20px; }
+  .group-head .ic { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; background: var(--blue-bg); color: var(--blue); }
+  .group-head .ic.gray { background: rgba(148,163,184,.15); color: var(--muted); }
+  .group-head h2 { margin: 0; font-size: 22px; }
+  .group-head p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+  .club { color: var(--pink); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px; }
+
+  /* Bot card */
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .card.off { opacity: .55; }
+  .top { display: flex; gap: 14px; align-items: center; }
+  .avatar { width: 52px; height: 52px; border-radius: 14px; background: var(--green-bg); color: var(--green); display: grid; place-items: center; flex-shrink: 0; }
+  .card.off .avatar { background: rgba(148,163,184,.15); color: var(--muted); }
+  .name b { display: block; font-size: 18px; }
+  .name span { color: var(--muted); font-size: 14px; }
+  .toggle { margin-left: auto; width: 52px; height: 28px; border-radius: 999px; background: #374151; position: relative; transition: background .2s; }
+  .toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #e5e7eb; transition: transform .2s; }
+  .toggle.on { background: #65d830; box-shadow: 0 0 14px rgba(101,216,48,.45); }
+  .toggle.on::after { transform: translateX(24px); background: #fde68a; }
+
+  .hand { background: var(--panel-2); border-radius: 14px; padding: 14px 16px; }
+  .hand small { color: var(--muted); font-size: 13px; }
+  .cards { display: flex; gap: 8px; margin-top: 10px; }
+  .pc { width: 44px; height: 62px; border-radius: 6px; background: #fef9c3; color: #111; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 6px 0; font-weight: 700; font-size: 17px; box-shadow: 0 2px 6px rgba(0,0,0,.4); }
+  .pc.red { color: #dc2626; }
+  .hand.folded .pc { background: #d6cfc0; opacity: .65; }
+
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 14px; }
+  .conn { color: var(--green); font-weight: 500; }
+  .conn.no { color: var(--red); }
+  .badge { font-size: 13px; padding: 3px 9px; border-radius: 6px; background: var(--green-bg); color: var(--green); font-weight: 500; }
+  .badge.amber { background: var(--amber-bg); color: var(--amber); }
+  .badge.gray { background: rgba(148,163,184,.15); color: var(--muted); }
+  hr { border: 0; border-top: 1px solid var(--border); margin: 2px 0; width: 100%; }
+
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .dot.no { background: var(--dim); box-shadow: none; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-weight: 500; font-size: 14px; transition: filter .15s, transform .1s; }
+  .btn:hover { filter: brightness(1.2); }
+  .btn:active { transform: scale(.97); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; filter: none; }
+  .btn.sm { padding: 6px 11px; font-size: 13px; border-radius: 8px; }
+  .g { background: var(--green-bg); color: var(--green); }
+  .t { background: var(--teal-bg); color: var(--teal); }
+  .r { background: var(--red-bg); color: var(--red); }
+  .b { background: var(--blue-bg); color: var(--blue); }
+  .a { background: var(--amber-bg); color: var(--amber); }
+  .ghost { background: rgba(75,85,99,.35); color: var(--muted); }
+
+  .chat { display: flex; gap: 8px; }
+  .chat input { flex: 1; background: rgba(17,24,39,.6); border: 1px solid rgba(148,163,184,.3); border-radius: 10px; padding: 10px 12px; color: var(--text); font: inherit; font-size: 14px; }
+  .chat button { background: var(--purple-bg); color: #d8b4fe; border-radius: 10px; width: 42px; display: grid; place-items: center; }
+
+  .cfg-toggle { background: none; color: var(--text); display: inline-flex; gap: 8px; align-items: center; font-weight: 500; padding: 0; }
+  .cfg { background: var(--panel-2); border-radius: 14px; padding: 18px; display: none; }
+  .cfg.open { display: block; }
+  .cfg h4 { margin: 0 0 14px; font-size: 16px; }
+  .cfg h5 { margin: 14px 0 10px; font-size: 13px; letter-spacing: .6px; color: var(--muted); text-transform: uppercase; }
+  .seg { display: flex; gap: 8px; flex-wrap: wrap; }
+  .seg button { padding: 8px 16px; border-radius: 9px; background: rgba(75,85,99,.45); color: var(--text); border: 1px solid transparent; font-size: 14px; font-weight: 500; }
+  .seg button.sel-fold { border-color: #9ca3af; }
+  .seg button.sel-nit { background: rgba(202,138,4,.5); border-color: var(--amber); color: #fde68a; }
+  .seg button.sel-smc { background: rgba(37,99,235,.35); border-color: #60a5fa; color: #bfdbfe; }
+  .seg button.sel-aggro, .seg button.sel-rit { background: rgba(22,163,74,.3); border-color: var(--green); color: #bbf7d0; }
+  .cfg p { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+
+  /* Modal */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); backdrop-filter: blur(3px); display: none; place-items: center; z-index: 50; padding: 16px; }
+  .overlay.open { display: grid; }
+  .modal { width: min(640px, 100%); background: rgba(55, 65, 81, 0.92); border: 1px solid var(--border); border-radius: 18px; padding: 24px; position: relative; }
+  .modal.small { width: min(440px, 100%); }
+  .modal h3 { margin: 0; font-size: 22px; }
+  .modal .x { position: absolute; top: 18px; right: 18px; background: none; color: var(--text); font-size: 22px; }
+  .tables { display: flex; flex-direction: column; gap: 12px; margin-top: 18px; }
+  .tbl { text-align: left; background: rgba(156,163,175,.18); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; color: var(--text); position: relative; }
+  .tbl:hover { background: rgba(156,163,175,.28); }
+  .tbl .id { font-size: 20px; font-weight: 700; }
+  .tbl .meta { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 8px; font-size: 14px; }
+  .tbl .meta em { font-style: normal; color: var(--blue); }
+  .tbl .meta .type { color: #fb923c; }
+  .tbl .created { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .tbl::after { content: "›"; position: absolute; right: 18px; top: 14px; font-size: 24px; }
+  .field label { display: block; margin: 16px 0 8px; }
+  .field input { width: 100%; padding: 12px 14px; border-radius: 10px; background: #1e293b; border: 1px solid #60a5fa; color: var(--text); font: inherit; font-size: 16px; }
+  .hint { color: #86efac; font-size: 13px; margin-top: 8px; }
+  .actions { display: flex; gap: 12px; margin-top: 20px; }
+  .actions button { flex: 1; padding: 12px; border-radius: 10px; font-weight: 600; }
+  .cancel { background: rgba(156,163,175,.35); color: var(--text); }
+  .confirm { background: #4f6ef7; color: white; }
+  .spinner { width: 34px; height: 34px; border: 3px solid rgba(147,197,253,.25); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 40px auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1f2937; border: 1px solid var(--border); padding: 12px 18px; border-radius: 12px; opacity: 0; transition: .25s; z-index: 60; font-size: 14px; }
+  .toast.show { opacity: 1; transform: translateX(-50%); }
+
+  .count { background: #ef4444; color: #fff; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 1px 7px; }
+  .count:empty { display: none; }
+  [hidden] { display: none !important; }
+
+  /* Table view */
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .tabs button { background: var(--panel); color: var(--muted); border: 1px solid var(--border); padding: 8px 14px; border-radius: 10px; font-size: 14px; }
+  .tabs button.on { color: var(--text); border-color: #60a5fa; background: var(--blue-bg); }
+  .table-wrap, .req-wrap { display: grid; grid-template-columns: minmax(0, 520px) minmax(0, 1fr); gap: 28px; align-items: start; }
+  .phone { background: linear-gradient(#3b2416, #24160d); border: 1px solid #5c3b22; border-radius: 28px; padding: 18px; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  .phone-head { display: flex; justify-content: space-between; align-items: center; color: #f5deb3; font-size: 13px; margin-bottom: 8px; }
+  .reveal { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; background: rgba(0,0,0,.3); padding: 5px 10px; border-radius: 999px; }
+  .felt-area { position: relative; aspect-ratio: 3 / 4; }
+  .felt { position: absolute; inset: 12% 14%; border-radius: 45% / 32%; background: #6b4424; padding: 10px; box-shadow: inset 0 0 0 3px #c9a063, 0 10px 30px rgba(0,0,0,.5); }
+  .felt-inner { width: 100%; height: 100%; border-radius: 45% / 32%; background: radial-gradient(ellipse at center, #2f7d4f 0%, #1c5234 70%, #154228 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+  .pot { background: rgba(0,0,0,.35); color: #fde68a; padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+  .board { display: flex; gap: 4px; min-height: 44px; }
+  .board .pc { width: 30px; height: 42px; font-size: 13px; padding: 3px 0; }
+  .brand-mark { color: rgba(255,255,255,.12); font-weight: 800; font-size: 28px; letter-spacing: 4px; }
+  .seat { position: absolute; transform: translate(-50%, -50%); text-align: center; width: 84px; }
+  .seat .ava { width: 46px; height: 46px; margin: 0 auto; border-radius: 50%; background: #2b1a10; border: 2px solid #c9a063; display: grid; place-items: center; font-weight: 700; color: #f5deb3; font-size: 15px; transition: .25s; }
+  .seat .plate { margin-top: -6px; background: rgba(20,12,6,.9); border: 1px solid #5c3b22; border-radius: 8px; padding: 3px 4px; font-size: 11px; color: #f5deb3; position: relative; }
+  .seat .plate b { display: block; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .seat .plate span { color: #fde68a; }
+  .seat.empty .ava { border-style: dashed; color: #c9a063; opacity: .6; font-size: 20px; }
+  .seat.folded .ava { opacity: .45; }
+  .seat.bot.show .ava { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.35), 0 0 18px rgba(239,68,68,.6); color: #fca5a5; }
+  .seat.bot.show .plate::after { content: "BOT"; position: absolute; top: -9px; right: -6px; background: #ef4444; color: #fff; font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 5px; }
+  .seat.acting .ava { border-color: #facc15; box-shadow: 0 0 14px rgba(250,204,21,.6); }
+  .info { background: #f3e6cf; color: #3b2416; border-radius: 16px; padding: 14px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; font-size: 13px; margin-top: 10px; }
+  .info div { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dashed rgba(59,36,22,.2); padding-bottom: 4px; }
+  .info b { font-weight: 700; }
+  .explain { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 22px; }
+  .explain h3 { margin: 0 0 10px; }
+  .explain p { color: var(--muted); line-height: 1.6; margin: 0 0 12px; font-size: 15px; }
+  .explain b { color: var(--text); }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+  .legend span { display: inline-flex; gap: 6px; align-items: center; }
+  .lg { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #c9a063; background: #2b1a10; display: inline-block; }
+  .lg.bot { border-color: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,.6); }
+
+  /* Buy-in requests */
+  .req-phone { background: #f3e6cf; border-color: #d6c19c; color: #3b2416; padding: 16px; }
+  .req-top { margin-bottom: 12px; }
+  .req-tabs { display: grid; grid-template-columns: 1fr 1fr; background: #e2cfae; border-radius: 10px; padding: 3px; font-weight: 600; font-size: 14px; }
+  .req-tabs span { text-align: center; padding: 7px; border-radius: 8px; color: #7c5a3a; }
+  .req-tabs span.on { background: linear-gradient(#f59e0b, #d97706); color: #fff; }
+  .req { display: flex; align-items: center; gap: 10px; padding: 12px 6px; border-bottom: 1px solid rgba(59,36,22,.15); }
+  .req .n { font-weight: 700; width: 20px; }
+  .req .who { flex: 1; min-width: 0; }
+  .req .who b { display: block; }
+  .req .who small { display: block; color: #7c5a3a; font-size: 12px; }
+  .req .who .tag { display: inline-block; margin-left: 6px; font-size: 10px; background: #fee2e2; color: #b91c1c; padding: 1px 5px; border-radius: 4px; font-weight: 700; vertical-align: middle; }
+  .req .rej, .req .acc { width: 40px; height: 34px; border-radius: 8px; color: #fff; font-size: 18px; font-weight: 700; }
+  .req .rej { background: #dc2626; }
+  .req .acc { background: #16a34a; }
+  .req .st { font-weight: 700; font-size: 13px; text-align: right; }
+  .req .st.ok { color: #16a34a; } .req .st.no { color: #dc2626; }
+  .req .st small { display: block; font-weight: 500; color: #7c5a3a; font-size: 11px; }
+  .req-divider { text-align: center; font-weight: 700; margin: 14px 0 4px; color: #5c3b22; }
+  .req-empty { text-align: center; color: #7c5a3a; padding: 18px; font-size: 14px; }
+
+  @media (max-width: 900px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .table-wrap, .req-wrap { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    main { padding: 20px 16px; } header { padding: 14px 16px; gap: 16px; }
+    .grid { grid-template-columns: 1fr; } .stats { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">HouseMaster</div>
+  <nav class="nav">
+    <a href="#" class="on" data-view="dashboard"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+    <a href="#" data-view="tables"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="10" ry="6"/><ellipse cx="12" cy="12" rx="5" ry="2.5"/></svg>Table View</a>
+    <a href="#" data-view="requests"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>Buy-in Requests <span class="count" id="reqCount"></span></a>
+  </nav>
+  <span class="demo-pill">Demo mode · mock data</span>
+</header>
+
+<main>
+  <div id="view-dashboard">
+    <h1>Dashboard</h1>
+    <p class="sub">Overview of your bots grouped by room</p>
+    <section class="stats" id="stats"></section>
+    <section id="groups"></section>
+  </div>
+
+  <div id="view-tables" hidden>
+    <h1>Table View</h1>
+    <p class="sub">What the table looks like from a player's seat in the club app</p>
+    <div class="tabs" id="tableTabs"></div>
+    <div class="table-wrap">
+      <div class="phone">
+        <div class="phone-head">
+          <span class="mono" id="tvTitle"></span>
+          <label class="reveal"><input type="checkbox" id="revealBots" /> Reveal bots</label>
+        </div>
+        <div class="felt-area">
+          <div class="felt"><div class="felt-inner">
+            <div class="pot" id="tvPot"></div>
+            <div class="board" id="tvBoard"></div>
+            <div class="brand-mark">PLO4</div>
+          </div></div>
+          <div id="tvSeats"></div>
+        </div>
+        <div class="info" id="tvInfo"></div>
+      </div>
+      <aside class="explain">
+        <h3>What a human player sees</h3>
+        <p>Bot accounts look exactly like regular players: a nickname, a stack, and normal timing. There's nothing on the table that marks them.</p>
+        <p>Turn on <b>Reveal bots</b> to see which seats are run from the dashboard. When several of them sit at one table, they're controlled by one person. That lets them share information and gang up on the humans without anyone noticing.</p>
+        <div class="legend"><span><i class="lg human"></i>Human player</span><span><i class="lg bot"></i>Bot (dashboard-controlled)</span></div>
+      </aside>
+    </div>
+  </div>
+
+  <div id="view-requests" hidden>
+    <h1>Buy-in Requests</h1>
+    <p class="sub">Host screen: every seat needs the club host to approve its buy-in</p>
+    <div class="req-wrap">
+      <div class="phone req-phone">
+        <div class="req-top">
+          <div class="req-tabs"><span class="on">Requests</span><span>Queue</span></div>
+        </div>
+        <div id="reqPending"></div>
+        <div class="req-divider">— Request History —</div>
+        <div id="reqHistory"></div>
+      </div>
+      <aside class="explain">
+        <h3>Why this matters</h3>
+        <p>To the host, a bot's request looks like any other: a nickname, a player ID and a buy-in amount. Nothing shows it's automated.</p>
+        <p>Try it: go to the Dashboard, press <b>Join Room</b> on a bot, and the request shows up here. The bot only takes its seat once you accept it.</p>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<!-- Select room modal -->
+<div class="overlay" id="roomModal">
+  <div class="modal">
+    <button class="x" data-close>×</button>
+    <h3>Select Room</h3>
+    <div class="club" style="margin-top:4px">Ace Of Poker</div>
+    <div class="tables" id="tableList"></div>
+  </div>
+</div>
+
+<!-- Chips modal (sit / manage) -->
+<div class="overlay" id="chipsModal">
+  <div class="modal small">
+    <h3 id="chipsTitle">Enter chips to sit</h3>
+    <div class="field">
+      <label for="chipsInput">Enter chips amount</label>
+      <input id="chipsInput" type="number" min="1" placeholder="e.g. 200" />
+      <div class="hint" id="chipsHint"></div>
+    </div>
+    <div class="actions">
+      <button class="cancel" data-close>Cancel</button>
+      <button class="confirm" id="chipsConfirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ICON = {
+  bot: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 4v4M9 13v2M15 13v2M2 14h2M20 14h2"/></svg>',
+  pin: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+  wifi: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M2 9a15 15 0 0 1 20 0"/><circle cx="12" cy="19.5" r="1"/></svg>',
+  play: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 3 14 9-14 9V3Z"/></svg>',
+  refresh: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16M3 12a9 9 0 0 1 15.5-6.2L21 8M21 3v5h-5M3 21v-5h5"/></svg>',
+  gear: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>',
+  send: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4 20-7Z"/></svg>',
+};
+
+const STYLES = {
+  fold:  { label: 'Fold',  desc: 'Fold every hand' },
+  nit:   { label: 'Nit',   desc: 'Play very tight, premium hands only' },
+  smc:   { label: 'SMC',   desc: 'Balanced play with standard ranges' },
+  aggro: { label: 'Aggro', desc: 'Wide ranges, aggressive opening' },
+};
+const RIT = {
+  optional: { label: 'Optional',     desc: 'Choose manually each time' },
+  once:     { label: 'Always Once',  desc: "Automatically select 'Run it Once' (with 1-2s delay)" },
+  twice:    { label: 'Always Twice', desc: "Automatically select 'Run it Twice' (with 1-2s delay)" },
+};
+
+// Mock state — nothing here talks to a real server.
+// Each table has 8 seats: null (empty), a human {kind:'human'}, or a bot {kind:'bot', id}
+const human = (name, stack) => ({ kind: 'human', name, stack, folded: false });
+const tables = [
+  { id: '88634828', blinds: '1/2',   bb: 1,   type: 'cashPLO', seats: [human('Karim_88', 184), null, human('lucky7', 96), human('Nour.S', 240), null, human('AhmadK', 151), human('moe_z', 77), null] },
+  { id: '67012320', blinds: '0.5/1', bb: 0.5, type: 'cashPLO', seats: [human('Rania', 62), null, null, human('Hadi99', 88), null, human('ZeeBee', 41), null, human('Fadi.M', 120)] },
+  { id: '48353983', blinds: '0.5/1', bb: 0.5, type: 'cashPLO', seats: [null, null, null, null, null, null, null, null] },
+];
+tables.forEach(t => { t.board = []; t.pot = 0; t.acting = -1; });
+const taken = t => t.seats.filter(Boolean).length;
+
+// Buy-in requests the "host" has to approve
+let reqSeq = 0;
+const requests = [];   // pending
+const history = [];    // accepted / rejected
+const bots = [
+  { id: 1, name: 'Maverick', pid: 'UTPAH',          enabled: true, connected: true, table: null, seated: false, sittingOut: false, chips: 1000, stack: 0, style: 'smc',   rit: 'twice', hand: null, folded: false, cfgOpen: false, pending: null },
+  { id: 2, name: 'Blaze77', pid: '28J5W',        enabled: true, connected: true, table: null, seated: false, sittingOut: false, chips: 1000, stack: 0, style: 'aggro', rit: 'twice', hand: null, folded: false, cfgOpen: false, pending: null },
+  { id: 3, name: 'StoneCold', pid: 'WF63Z', enabled: true, connected: true, table: null, seated: false, sittingOut: false, chips: 1000, stack: 0, style: 'nit',   rit: 'twice', hand: null, folded: false, cfgOpen: false, pending: null },
+  { id: 4, name: 'QuietKing', pid: 'QQ85R',      enabled: true, connected: true, table: null, seated: false, sittingOut: false, chips: 1000, stack: 0, style: 'smc',   rit: 'twice', hand: null, folded: false, cfgOpen: false, pending: null },
+  { id: 5, name: 'LuckyDraw', pid: 'YLRCJ',          enabled: true, connected: true, table: null, seated: false, sittingOut: false, chips: 1000, stack: 0, style: 'smc',   rit: 'twice', hand: null, folded: false, cfgOpen: false, pending: null },
+];
+
+const RANKS = 'AKQJT98765432'.split('');
+const SUITS = [['♠', false], ['♥', true], ['♦', true], ['♣', false]];
+function dealHand() {
+  const deck = [];
+  RANKS.forEach(r => SUITS.forEach(([s, red]) => deck.push({ r, s, red })));
+  const out = [];
+  while (out.length < 4) out.push(deck.splice(Math.floor(Math.random() * deck.length), 1)[0]);
+  return out;
+}
+
+const $ = s => document.querySelector(s);
+let pendingBot = null, pendingTable = null, chipsMode = 'sit';
+
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function renderStats() {
+  const rooms = new Set(bots.filter(b => b.table).map(b => b.table.id));
+  const s = [
+    [bots.length, 'Total Bots', ''],
+    [bots.filter(b => b.connected && b.enabled).length, 'Connected', ''],
+    [rooms.size, 'Active Rooms', 'blue'],
+    [bots.filter(b => b.seated).length, 'Seated', 'amber'],
+  ];
+  $('#stats').innerHTML = s.map(([n, l, c]) => `
+    <div class="stat"><div class="ic ${c}">${c === 'blue' ? ICON.pin : ICON.bot}</div><div><b>${n}</b><span>${l}</span></div></div>`).join('');
+}
+
+function botCard(b) {
+  const hand = b.table && b.hand ? `
+    <div class="hand ${b.folded ? 'folded' : ''}">
+      <small>Current Hand${b.folded ? ' (Folded)' : ''}</small>
+      <div class="cards">${b.hand.map(c => `<div class="pc ${c.red ? 'red' : ''}"><span>${c.r}</span><span>${c.s}</span></div>`).join('')}</div>
+    </div>` : '';
+  const inRoom = b.table ? `
+    <div class="row">${ICON.pin.replace('22', '16').replace('22', '16')}<span>In Room</span>
+      <span class="badge ${b.sittingOut ? 'amber' : ''}">${b.sittingOut ? 'Sitting Out' : 'Seated'}</span>
+      <span class="mono" style="color:var(--muted)">#${b.table.id} · ${b.stack} chips</span>
+    </div>` : '';
+  const active = b.enabled && b.connected;
+  const pending = b.pending ? `
+    <div class="row">${ICON.pin.replace('22', '16').replace('22', '16')}<span>Requested</span>
+      <span class="badge amber">Awaiting host approval</span>
+      <span class="mono" style="color:var(--muted)">#${b.pending.id}</span>
+    </div>` : '';
+  return `
+  <article class="card ${b.enabled ? '' : 'off'}" data-id="${b.id}">
+    <div class="top">
+      <div class="avatar">${ICON.bot}</div>
+      <div class="name"><b>${b.name}</b><span>Loading name...</span></div>
+      <button class="toggle ${b.enabled ? 'on' : ''}" data-act="toggle" aria-label="Enable bot"></button>
+    </div>
+    ${hand}
+    <div class="row">
+      <span class="conn ${active ? '' : 'no'}">${ICON.wifi} ${active ? 'Connected' : 'Disconnected'}</span>
+      <span class="club">Ace Of Poker</span><span class="mono" style="color:var(--muted)">(sandbox)</span>
+    </div>
+    ${inRoom}${pending}
+    <hr />
+    <div class="row">
+      <span class="dot ${active ? '' : 'no'}"></span><span style="min-width:48px">${active ? 'Active' : 'Idle'}</span>
+      <button class="btn g" data-act="join" ${active ? '' : 'disabled'}>${ICON.play} Join Room</button>
+      <button class="btn t" data-act="chips" ${active ? '' : 'disabled'}>${ICON.refresh} Manage Chips</button>
+    </div>
+    ${b.table ? `
+    <div class="row">
+      <button class="btn sm r" data-act="leave">Leave</button>
+      <button class="btn sm b" data-act="sit" ${b.sittingOut ? '' : 'disabled'}>Sit</button>
+      <button class="btn sm a" data-act="sitout" ${b.sittingOut ? 'disabled' : ''}>Sit Out</button>
+      <button class="btn sm t" data-act="reload">${ICON.refresh} Reload</button>
+    </div>
+    <div class="row"><span>Run It:</span>
+      <button class="btn sm ghost" data-act="once">Once</button>
+      <button class="btn sm ghost" data-act="twice">Twice</button>
+    </div>
+    <form class="chat" data-act="chat">
+      <input placeholder="Send chat message..." />
+      <button type="submit" aria-label="Send">${ICON.send}</button>
+    </form>` : ''}
+    <button class="cfg-toggle" data-act="cfg">${ICON.gear} Configure</button>
+    <div class="cfg ${b.cfgOpen ? 'open' : ''}">
+      <h4>Configuration</h4>
+      <h5>Play Style</h5>
+      <div class="seg">${Object.entries(STYLES).map(([k, v]) =>
+        `<button data-act="style" data-v="${k}" class="${b.style === k ? 'sel-' + k : ''}">${v.label}</button>`).join('')}</div>
+      <p>${STYLES[b.style].desc}</p>
+      <h5>Run It Twice</h5>
+      <div class="seg">${Object.entries(RIT).map(([k, v]) =>
+        `<button data-act="rit" data-v="${k}" class="${b.rit === k ? 'sel-rit' : ''}">${v.label}</button>`).join('')}</div>
+      <p>${RIT[b.rit].desc}</p>
+    </div>
+  </article>`;
+}
+
+function renderGroups() {
+  const byTable = {};
+  bots.filter(b => b.table).forEach(b => (byTable[b.table.id] ??= { t: b.table, list: [] }).list.push(b));
+  const idle = bots.filter(b => !b.table);
+  let html = Object.values(byTable).map(({ t, list }) => `
+    <section class="group">
+      <div class="group-head"><div class="ic">${ICON.pin}</div>
+        <div><h2>Room ${t.blinds}</h2><p><span class="club">Ace Of Poker</span> · ${list.length} bot${list.length > 1 ? 's' : ''} playing</p></div>
+      </div>
+      <div class="grid">${list.map(botCard).join('')}</div>
+    </section>`).join('');
+  if (idle.length) html += `
+    <section class="group">
+      <div class="group-head"><div class="ic gray">${ICON.bot}</div>
+        <div><h2>Not In Room</h2><p>${idle.length} bot${idle.length > 1 ? 's' : ''} not currently in a room</p></div>
+      </div>
+      <div class="grid">${idle.map(botCard).join('')}</div>
+    </section>`;
+  $('#groups').innerHTML = html;
+}
+
+/* ---------- Views ---------- */
+let view = 'dashboard';
+let tvTable = tables[1];
+let revealBots = false;
+
+document.querySelector('.nav').addEventListener('click', e => {
+  const a = e.target.closest('[data-view]');
+  if (!a) return;
+  e.preventDefault();
+  view = a.dataset.view;
+  document.querySelectorAll('.nav a').forEach(x => x.classList.toggle('on', x === a));
+  ['dashboard', 'tables', 'requests'].forEach(v => $('#view-' + v).hidden = v !== view);
+  render();
+});
+
+/* ---------- Table view ---------- */
+// Seat positions around the oval, as % of the felt area (seat 0 = bottom centre)
+const SEAT_POS = [[50, 93], [12, 76], [6, 50], [12, 24], [50, 7], [88, 24], [94, 50], [88, 76]];
+
+function seatInfo(s) {
+  if (!s) return null;
+  if (s.kind === 'human') return { name: s.name, stack: s.stack, folded: s.folded, bot: false };
+  const b = bots.find(x => x.id === s.id);
+  return { name: b.name, stack: b.stack, folded: b.folded || b.sittingOut, bot: true, out: b.sittingOut };
+}
+
+function renderTableView() {
+  $('#tableTabs').innerHTML = tables.map(t => {
+    const nBots = t.seats.filter(s => s?.kind === 'bot').length;
+    return `<button data-tv="${t.id}" class="${t === tvTable ? 'on' : ''}">#${t.id} · ${t.blinds} · ${taken(t)}/8${nBots ? ` · ${nBots} bot${nBots > 1 ? 's' : ''}` : ''}</button>`;
+  }).join('');
+  const t = tvTable;
+  $('#tvTitle').textContent = `#${t.id} | BB:${t.blinds.split('/')[1]} · Ace Of Poker`;
+  $('#revealBots').checked = revealBots;
+  $('#tvPot').textContent = `Pot ${t.pot.toFixed(2)}`;
+  $('#tvBoard').innerHTML = t.board.map(c => `<div class="pc ${c.red ? 'red' : ''}"><span>${c.r}</span><span>${c.s}</span></div>`).join('');
+  $('#tvSeats').innerHTML = t.seats.map((s, i) => {
+    const [x, y] = SEAT_POS[i];
+    const info = seatInfo(s);
+    if (!info) return `<div class="seat empty" style="left:${x}%;top:${y}%"><div class="ava">+</div><div class="plate"><b>Empty</b>&nbsp;</div></div>`;
+    const cls = ['seat', info.bot ? 'bot' : '', info.bot && revealBots ? 'show' : '', info.folded ? 'folded' : '', t.acting === i ? 'acting' : ''].join(' ');
+    return `<div class="${cls}" style="left:${x}%;top:${y}%">
+      <div class="ava">${info.name.slice(0, 2).toUpperCase()}</div>
+      <div class="plate"><b>${info.name}</b><span>${info.out ? 'Sitting out' : info.stack.toFixed(2)}</span></div>
+    </div>`;
+  }).join('');
+  const bb = t.blinds.split('/').reverse().join('/');
+  $('#tvInfo').innerHTML = [
+    ['Game Type', 'PLO4'], ['BB/SB', bb], ['Buy-in Range', '20 – 100 BB'], ['Game Code', t.id],
+    ['Game Length', 'No limit'], ['Action Time', '15 secs'], ['Straddle', 'UTG only'], ['Rake', '6.9%, Cap = 7.99'],
+  ].map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('');
+}
+
+$('#tableTabs').addEventListener('click', e => {
+  const b = e.target.closest('[data-tv]');
+  if (!b) return;
+  tvTable = tables.find(t => t.id === b.dataset.tv);
+  renderTableView();
+});
+$('#revealBots').addEventListener('change', e => { revealBots = e.target.checked; renderTableView(); });
+
+/* ---------- Buy-in requests ---------- */
+function renderRequests() {
+  $('#reqCount').textContent = requests.length || '';
+  $('#reqPending').innerHTML = requests.length ? requests.map((r, i) => {
+    const b = bots.find(x => x.id === r.botId);
+    return `<div class="req">
+      <span class="n">${i + 1}.</span>
+      <div class="who"><b>${b.name.toLowerCase()}</b><small>#${b.pid}</small><small>Buy-in : ${r.amt} · Table #${r.table.id}</small></div>
+      <button class="rej" data-req="${r.n}" data-ok="0" aria-label="Reject">✕</button>
+      <button class="acc" data-req="${r.n}" data-ok="1" aria-label="Accept">✓</button>
+    </div>`;
+  }).join('') : '<div class="req-empty">No pending requests. Press Join Room on a bot to send one.</div>';
+  $('#reqHistory').innerHTML = history.length ? history.slice().reverse().map((h, i) => `
+    <div class="req">
+      <span class="n">${i + 1}.</span>
+      <div class="who"><b>${h.name}${revealBots ? '<span class="tag">BOT</span>' : ''}</b><small>#${h.pid}</small><small>Buy-in : ${h.amt}</small></div>
+      <div class="st ${h.ok ? 'ok' : 'no'}">${h.ok ? 'Accepted' : 'Rejected'}<small>Ace Of Poker</small></div>
+    </div>`).join('') : '<div class="req-empty">No history yet.</div>';
+}
+
+$('#reqPending').addEventListener('click', e => {
+  const btn = e.target.closest('[data-req]');
+  if (!btn) return;
+  const idx = requests.findIndex(r => r.n == btn.dataset.req);
+  const r = requests.splice(idx, 1)[0];
+  const b = bots.find(x => x.id === r.botId);
+  const ok = btn.dataset.ok === '1';
+  const free = r.table.seats.findIndex(s => !s);
+  b.pending = null;
+  if (ok && free !== -1) {
+    r.table.seats[free] = { kind: 'bot', id: b.id };
+    Object.assign(b, { table: r.table, seated: true, stack: r.amt, hand: dealHand(), folded: false, sittingOut: false });
+    toast(`Accepted ${b.name} — seated at #${r.table.id}`);
+  } else {
+    b.chips += r.amt;  // refund
+    toast(ok ? 'Table is full — request rejected' : `Rejected ${b.name}`);
+  }
+  history.push({ name: b.name, pid: b.pid, amt: r.amt, ok: ok && free !== -1 });
+  render();
+});
+
+function render() {
+  renderStats(); renderRequests();
+  if (view === 'dashboard') renderGroups();
+  if (view === 'tables') renderTableView();
+}
+
+function openModal(id) { $(id).classList.add('open'); }
+function closeModals() { document.querySelectorAll('.overlay').forEach(o => o.classList.remove('open')); }
+
+function openRoomPicker(bot) {
+  pendingBot = bot;
+  const list = $('#tableList');
+  list.innerHTML = '<div class="spinner"></div>';
+  openModal('#roomModal');
+  setTimeout(() => {
+    list.innerHTML = tables.map(t => `
+      <button class="tbl" data-table="${t.id}" ${taken(t) >= 8 ? 'disabled' : ''}>
+        <span class="id mono">#${t.id}</span> <span class="badge amber">PREPARE</span>
+        <div class="meta"><span>Blinds: <em class="mono">${t.blinds}</em></span><span>Type: <span class="type">${t.type}</span></span>
+          <span class="mono">${taken(t)}/8</span><span>Empty: <b style="color:var(--green)">${8 - taken(t)}</b></span></div>
+        <div class="created">Created: Mar 3, 12:00 AM</div>
+      </button>`).join('');
+  }, 600);
+}
+
+function openChips(bot, mode) {
+  pendingBot = bot; chipsMode = mode;
+  $('#chipsTitle').textContent = mode === 'sit' ? 'Enter chips to sit' : 'Add chips to stack';
+  $('#chipsInput').value = '';
+  $('#chipsHint').textContent = `Current club chips: ${bot.chips.toFixed(2)}`;
+  openModal('#chipsModal');
+  setTimeout(() => $('#chipsInput').focus(), 50);
+}
+
+$('#groups').addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (!el || el.tagName === 'FORM') return;
+  const bot = bots.find(b => b.id == el.closest('.card').dataset.id);
+  switch (el.dataset.act) {
+    case 'toggle': bot.enabled = !bot.enabled; break;
+    case 'join': if (bot.pending) return toast(`${bot.name} is waiting for host approval`); if (bot.table) return toast(`${bot.name} is already in a room`); return openRoomPicker(bot);
+    case 'chips': if (!bot.table) return toast(`Club chips: ${bot.chips.toFixed(2)}`); return openChips(bot, 'topup');
+    case 'leave':
+      bot.chips += bot.stack; bot.table.seats[bot.table.seats.findIndex(x => x?.id === bot.id)] = null; Object.assign(bot, { table: null, seated: false, stack: 0, hand: null, sittingOut: false });
+      toast(`${bot.name} left the room`); break;
+    case 'sit': bot.sittingOut = false; toast(`${bot.name} is back in`); break;
+    case 'sitout': bot.sittingOut = true; bot.folded = true; toast(`${bot.name} is sitting out`); break;
+    case 'reload': toast(`Reloading ${bot.name}...`); setTimeout(() => { bot.hand = dealHand(); bot.folded = false; render(); }, 500); break;
+    case 'once': case 'twice': toast(`Run it ${el.dataset.act} selected`); break;
+    case 'cfg': bot.cfgOpen = !bot.cfgOpen; break;
+    case 'style': bot.style = el.dataset.v; break;
+    case 'rit': bot.rit = el.dataset.v; break;
+  }
+  render();
+});
+
+$('#groups').addEventListener('submit', e => {
+  e.preventDefault();
+  const input = e.target.querySelector('input');
+  if (!input.value.trim()) return;
+  toast(`Message sent: "${input.value.trim()}"`);
+  input.value = '';
+});
+
+$('#tableList').addEventListener('click', e => {
+  const btn = e.target.closest('[data-table]');
+  if (!btn) return;
+  pendingTable = tables.find(t => t.id === btn.dataset.table);
+  closeModals();
+  openChips(pendingBot, 'sit');
+});
+
+$('#chipsConfirm').addEventListener('click', () => {
+  const amt = parseFloat($('#chipsInput').value);
+  const bot = pendingBot;
+  if (!amt || amt <= 0) return toast('Enter a valid amount');
+  if (amt > bot.chips) return toast('Not enough club chips');
+  if (chipsMode === 'sit' && (bot.table || bot.pending)) { closeModals(); return toast(`${bot.name} is already in a room`); }
+  bot.chips -= amt;
+  if (chipsMode === 'sit') {
+    bot.pending = pendingTable;
+    requests.push({ n: ++reqSeq, botId: bot.id, table: pendingTable, amt });
+    toast(`Buy-in request sent for ${bot.name} — waiting for host`);
+  } else {
+    bot.stack += amt;
+    toast(`Added ${amt} chips to ${bot.name}`);
+  }
+  closeModals(); render();
+});
+
+document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => {
+  if (e.target === o || e.target.closest('[data-close]')) closeModals();
+}));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModals(); });
+
+// Simulated hand loop for the demo
+setInterval(() => {
+  // Don't wipe a half-typed chat message
+  if (document.activeElement?.closest('.chat')) return;
+  bots.forEach(b => {
+    if (!b.table || !b.enabled || b.sittingOut) return;
+    if (Math.random() < 0.35) { b.hand = dealHand(); b.folded = false; }
+    else if (!b.folded && Math.random() < { fold: 1, nit: .7, smc: .45, aggro: .25 }[b.style]) b.folded = true;
+  });
+  // Advance each table: new hand, or next street / next player to act
+  tables.forEach(t => {
+    const occupied = t.seats.map((s, i) => s ? i : -1).filter(i => i >= 0);
+    if (occupied.length < 2) { t.board = []; t.pot = 0; t.acting = -1; return; }
+    if (t.board.length >= 5 || t.acting === -1) {
+      t.board = []; t.pot = t.bb * 3;
+      t.seats.forEach(s => { if (s?.kind === 'human') s.folded = false; });
+    } else {
+      const deck = dealHand().concat(dealHand());
+      const add = t.board.length === 0 ? 3 : 1;
+      t.board = t.board.concat(deck.filter(c => !t.board.some(x => x.r === c.r && x.s === c.s)).slice(0, add));
+      t.pot += t.bb * (2 + Math.floor(Math.random() * 6));
+      t.seats.forEach(s => { if (s?.kind === 'human' && Math.random() < .25) s.folded = true; });
+    }
+    t.acting = occupied[Math.floor(Math.random() * occupied.length)];
+  });
+  render();
+}, 3000);
+
+render();
+</script>
+</body>
+</html>
